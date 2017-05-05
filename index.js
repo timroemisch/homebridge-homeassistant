@@ -20,7 +20,7 @@ let HomeAssistantClimate;
 
 function HomeAssistantPlatform(log, config, api) {
   // auth info
-  this.host = config.host;
+  this.host = config.host.replace(/^http:\/\//i, 'ws://').replace(/^https:\/\//i, 'wss://');
   this.password = config.password;
   this.supportedTypes = config.supported_types || ['binary_sensor', 'climate', 'cover', 'device_tracker', 'fan', 'group', 'input_boolean', 'light', 'lock', 'media_player', 'scene', 'sensor', 'switch'];
   this.foundAccessories = [];
@@ -56,7 +56,7 @@ HomeAssistantPlatform.prototype = {
 
     const that = this;
 
-    HAWS.createConnection('ws://localhost:8123/api/websocket', { authToken: 'TESTTESTTEST' }).then(
+    HAWS.createConnection(`${this.host}/api/websocket`, { authToken: this.password }).then(
       (conn) => {
         that.log('Connection established to Home Assistant.');
         this.wsConn = conn;
