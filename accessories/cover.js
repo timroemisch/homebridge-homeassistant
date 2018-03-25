@@ -69,6 +69,12 @@ class HomeAssistantCover {
       .on('get', this.getState.bind(this))
       .on('set', this.setTargetState.bind(this));
 
+    if (this.tiltCharacteristic) {
+      this.service
+        .getCharacteristic(this.tiltCharacteristic)
+        .on('set', this.setTilt.bind(this));
+    }
+
     return [informationService, this.service];
   }
 
@@ -127,6 +133,7 @@ class HomeAssistantRollershutter extends HomeAssistantCover {
     this.service = new Service.WindowCovering();
     this.stateCharacteristic = Characteristic.CurrentPosition;
     this.targetCharacteristic = Characteristic.TargetPosition;
+    this.tiltCharacteristic = Characteristic.TargetHorizontalTiltAngle;
   }
 
   transformData(data) {
@@ -147,6 +154,23 @@ class HomeAssistantRollershutter extends HomeAssistantCover {
     this.log(`Setting the state of the ${this.name} to ${payload.position}`);
 
     this.client.callService(this.domain, 'set_cover_position', payload, (data) => {
+      if (data) {
+        callback();
+      } else {
+        callback(communicationError);
+      }
+    });
+  }
+
+  setTilt(tilt_position, callback, context) {
+    const payload = {
+      entity_id: this.entity_id,
+      tilt_position: Math.floor(((tilt_position + 90) / 180) * 100),
+    };
+
+    this.log(`Setting the tilt position of the ${this.name} to ${payload.tilt_position}`);
+
+    this.client.callService(this.domain, 'set_cover_tilt_position', payload, (data) => {
       if (data) {
         callback();
       } else {
