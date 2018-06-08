@@ -72,6 +72,7 @@ class HomeAssistantCover {
     if (this.tiltCharacteristic) {
       this.service
         .getCharacteristic(this.tiltCharacteristic)
+        .on('get', this.getTilt.bind(this))
         .on('set', this.setTilt.bind(this));
     }
 
@@ -178,6 +179,17 @@ class HomeAssistantRollershutter extends HomeAssistantCover {
       }
     });
   }
+
+  getTilt(callback) {
+    this.client.fetchState(this.entity_id, (data) => {
+      if (data) {
+        callback(null, data.attributes.current_tilt_position);
+      } else {
+        callback(communicationError);
+      }
+    });
+  }
+
 }
 
 class HomeAssistantRollershutterBinary extends HomeAssistantRollershutter {
